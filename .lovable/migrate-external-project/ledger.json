@@ -1,0 +1,82 @@
+{
+  "source": "code-archive: sprint-notes-main.zip",
+  "capabilities": [
+    {
+      "capability": "code",
+      "source": "TanStack Start app: sprint board, tasks, team board, notes, rename dialog",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "design",
+      "source": "Fraunces + DM Sans fonts, warm color tokens in styles.css",
+      "outcome": "migrate",
+      "status": "verified",
+      "next_action": "none"
+    },
+    {
+      "capability": "schema",
+      "source": "src/integrations/supabase/types.ts lists users, sprints, sprint_collaborators, tasks",
+      "outcome": "not migrated: unused stub",
+      "status": "accepted",
+      "next_action": "The app never imports the client and @supabase/supabase-js is not installed; no reads or writes exist. Offer Lovable Cloud only if the user wants shared/synced sprints."
+    },
+    {
+      "capability": "records",
+      "source": "browser localStorage key sprints-v1",
+      "outcome": "keep localStorage",
+      "status": "accepted",
+      "next_action": "Data lives in each visitor's browser on the old address and does not transfer to a new address."
+    },
+    {
+      "capability": "auth identities",
+      "source": "none (team members are hardcoded in UserBoard)",
+      "outcome": "absent",
+      "status": "accepted",
+      "next_action": "none"
+    },
+    {
+      "capability": "authorization",
+      "source": "none",
+      "outcome": "absent",
+      "status": "accepted",
+      "next_action": "none"
+    },
+    {
+      "capability": "uploaded files",
+      "source": "none",
+      "outcome": "absent",
+      "status": "accepted",
+      "next_action": "none"
+    },
+    {
+      "capability": "external providers / endpoints / webhooks / schedules",
+      "source": "none",
+      "outcome": "absent",
+      "status": "accepted",
+      "next_action": "none"
+    },
+    {
+      "capability": "secrets",
+      "source": "VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY referenced only by unused stub",
+      "outcome": "not needed",
+      "status": "accepted",
+      "next_action": "none"
+    },
+    {
+      "capability": "cutover",
+      "source": "old published address",
+      "outcome": "user publishes new app",
+      "status": "pending",
+      "next_action": "User publishes when ready."
+    },
+    {
+      "capability": "verification",
+      "source": "build, routing test, browser flow",
+      "outcome": "verify",
+      "status": "verified",
+      "next_action": "Build OK, routing test passed, browser check: add task, notes, rename person, reload persists sprint data, no console errors."
+    }
+  ]
+}

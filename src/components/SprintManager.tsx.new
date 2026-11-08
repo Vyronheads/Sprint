@@ -1,0 +1,178 @@
+import React, { useState } from 'react';
+import { Toaster, toast } from 'sonner';
+
+interface Sprint {
+  id: string;
+  name: string;
+  description: string;
+  sharedWith: string[];
+}
+
+const SprintManager: React.FC = () => {
+  const [sprints, setSprints] = useState<Sprint[]>([]);
+  const [newSprint, setNewSprint] = useState({ name: '', description: '' });
+  const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
+  const [sharedUsers, setSharedUsers] = useState<string>('');
+  const [shareInputs, setShareInputs] = useState<Record<string, string>>({});
+
+  const handleCreateSprint = () => {
+    const newSprintItem: Sprint = {
+      id: Date.now().toString(),
+      name: newSprint.name,
+      description: newSprint.description,
+      sharedWith: [],
+    };
+    setSprints([...sprints, newSprintItem]);
+    setNewSprint({ name: '', description: '' });
+    toast('Sprint criada', { description: `Sprint ${newSprintItem.name} foi criada com sucesso.` });
+  };
+
+  const handleEditSprint = (sprint: Sprint) => {
+    setEditingSprint(sprint);
+    setNewSprint({ name: sprint.name, description: sprint.description });
+  };
+
+  const handleUpdateSprint = () => {
+    if (editingSprint) {
+      const updatedSprints = sprints.map((sprint) =>
+        sprint.id === editingSprint.id
+          ? { ...sprint, name: newSprint.name, description: newSprint.description }
+          : sprint
+      );
+      setSprints(updatedSprints);
+      setEditingSprint(null);
+      setNewSprint({ name: '', description: '' });
+      toast('Sprint atualizada', { description: `Sprint ${newSprint.name} foi atualizada com sucesso.` });
+    }
+  };
+
+  const handleShareSprint = (sprintId: string) => {
+    const users = sharedUsers.split(',').map((user) => user.trim()).filter(Boolean);
+    if (users.length === 0) {
+      toast('Informe usuários', { description: 'Separe os usuários por vírgula.' });
+      return;
+    }
+    const updatedSprints = sprints.map((sprint) =>
+      sprint.id === sprintId
+        ? { ...sprint, sharedWith: [...new Set([...sprint.sharedWith, ...users])] }
+        : sprint
+    );
+    setSprints(updatedSprints);
+    setSharedUsers('');
+    toast('Sprint compartilhada', { description: `Sprint compartilhada com: ${users.join(', ')}.` });
+  };
+
+  const getShareInput = (sprintId: string) => shareInputs[sprintId] ?? '';
+  const setShareInput = (sprintId: string, value: string) =>
+    setShareInputs((prev) => ({ ...prev, [sprintId]: value }));
+
+  return (
+    <div className="space-y-6 p-4">
+      <Toaster />
+
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <h2 className="mb-4 font-semibold text-lg">
+          {editingSprint ? 'Editar Sprint' : 'Criar Nova Sprint'}
+        </h2>
+        <div className="flex flex-col gap-3">
+          <input
+            placeholder="Nome da Sprint"
+            value={newSprint.name}
+            onChange={(e) => setNewSprint({ ...newSprint, name: e.target.value })}
+            className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+          <textarea
+            placeholder="Descrição da Sprint"
+            value={newSprint.description}
+            onChange={(e) => setNewSprint({ ...newSprint, description: e.target.value })}
+            rows={3}
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none"
+          />
+          <button
+            onClick={editingSprint ? handleUpdateSprint : handleCreateSprint}
+            disabled={!newSprint.name.trim()}
+            className="mt-1 w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {editingSprint ? 'Atualizar Sprint' : 'Criar Sprint'}
+          </button>
+          {editingSprint && (
+            <button
+              onClick={() => { setEditingSprint(null); setNewSprint({ name: '', description: '' }); }}
+              className="rounded-md border px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              Cancelar edição
+            </button>
+          )}
+        </div>
+      </div>
+
+      {sprints.length === 0 ? (
+        <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
+          Nenhuma sprint criada ainda. Use o formulário acima para começar.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {sprints.map((sprint) => (
+            <div key={sprint.id} className="flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-sm">
+              <div>
+                <h3 className="font-semibold">{sprint.name}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{sprint.description || 'Sem descrição.'}</p>
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Colaboradores</span>
+                <span>{sprint.sharedWith.length}</span>
+              </div>
+
+              {sprint.sharedWith.length > 0 && (
+                <ul className="flex flex-wrap gap-1">
+                  {sprint.sharedWith.map((user) => (
+                    <li key={user} className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium">
+                      {user}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="flex gap-2">
+                <input
+                  placeholder="Usuários (vírgula)"
+                  value={getShareInput(sprint.id)}
+                  onChange={(e) => setShareInput(sprint.id, e.target.value)}
+                  className="flex-1 h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+                <button
+                  onClick={() => {
+                    const users = getShareInput(sprint.id).split(',').map((u) => u.trim()).filter(Boolean);
+                    if (users.length === 0) return;
+                    setSprints((prev) =>
+                      prev.map((s) =>
+                        s.id === sprint.id
+                          ? { ...s, sharedWith: [...new Set([...s.sharedWith, ...users])] }
+                          : s
+                      )
+                    );
+                    setShareInput(sprint.id, '');
+                    toast('Sprint compartilhada', { description: `${users.join(', ')} agora são colaboradores.` });
+                  }}
+                  className="h-9 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  Compartilhar
+                </button>
+              </div>
+
+              <button
+                onClick={() => handleEditSprint(sprint)}
+                className="mt-1 rounded-md border px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+              >
+                Editar Sprint
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SprintManager;
